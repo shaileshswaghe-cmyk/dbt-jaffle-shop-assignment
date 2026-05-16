@@ -1,0 +1,120 @@
+
+version: 2
+
+models:
+    - name: stg_jaffle_shop_customers
+      description: "Customer model contain all customer data"
+      columns:
+          - name: id
+            description: "The primary key of the table"
+            tests:
+                - unique
+                - not_null
+          - name: firstname
+            description: "first name of the customer"
+          - name: lastname
+            description: "last name of the customer"
+          - name: email
+            description: "email id of the customer"
+          - name: loadedat
+            description: "when the customer loaded into source"
+
+    - name: stg_jaffle_shop_orders
+      description: "Contains orders transaction details"
+      columns:
+          - name: id
+            description: "The primary key for this table"
+            tests:
+                - unique
+                - not_null
+          - name: customerid
+            description: "refrence of customer id who make the order"
+            data_tests:
+              - relationships:
+                  arguments: 
+                    to: ref('stg_jaffle_shop_customers')
+                    field: id
+          - name: orderdate
+            description: "order date on which order is placed"
+          - name: status 
+            description: "status of order is shipped, returned, placed, deliverd, completed etc.."
+          - name: loadedat
+            description: "when the customer loaded into source" 
+
+    - name: stg_jaffle_shop_order_status_history
+      description: "order status history, its a transactional data and may contains multiple status of one order"
+      columns:
+          - name: orderid
+            description: "The primary key of the table"
+            tests:
+                - unique
+                - not_null
+          - name: status
+            description: "historical status of order"
+          - name: updateat
+            description: "when the status is updated"
+
+    - name: stg_strip_payments
+      description: "payment details of each order and customer"
+      columns:
+          - name: amountincents
+            description: "payment amount in cents currancy"
+          - name: amountindallor
+            description: "payment amount in dallor currancy"
+          - name: createdat
+            description: "when payment records is created"
+          - name: id
+            description: "The primary key of the table"
+            tests:
+                - unique
+                - not_null
+          - name: orderid
+            description: "Payment again which order id is made"
+            data_tests:
+              - relationships:
+                  arguments: 
+                    to: ref('stg_jaffle_shop_orders')
+                    field: id
+          - name: paymentmethod
+            description: "payment method, cash, online, upi, CC, DC etc.."                        
+          - name: status
+            description: "status of payment is shipped, returned, placed, deliverd, completed etc.."
+    - name: mart_dim_cistomer
+      description: "Customer dimension with profile info, order history, and lifetime spend."
+      columns:
+          - name: customer_id
+            description: "Primary key for the customer dimension."
+            tests:
+              - unique
+              - not_null
+          - name: email
+            description: "Customer email address."
+            tests:
+              - not_null
+          - name: total_orders
+            description: "Total number of orders placed by the customer."
+          - name: lifetime_spend
+            description: "Total lifetime spend of the customer."
+
+    - name: mart_fct_order
+      description: "Order fact table with aggregated payment details."
+      columns:
+          - name: order_id
+            description: "Primary key for the order fact table."
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: "Foreign key referencing the customer dimension."
+            data_tests:
+              - relationships:
+                  arguments:
+                    to: ref('dim_customers')
+                    field: customer_id
+          - name: order_amount
+            description: "Total amount of the order."
+          - name: payment_count
+            description: "Number of payments associated with the order."
+          - name: payment_methods
+            description: "List of payment methods used for the order."
+        

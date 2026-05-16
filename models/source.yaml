@@ -1,0 +1,50 @@
+version:  2
+
+sources:
+  - name: jaffle_shop
+    database: RAW_DB
+    schema: jaffle_shop
+    tables:
+      - name: CUSTOMERS
+        columns:
+          - name: ID
+            tests:
+            - unique
+            - not_null
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 10, period: day}
+        loaded_at_field: _LOADED_AT
+      - name: ORDERS
+        columns:
+          - name: ID
+            tests:
+            - not_null
+            - unique
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after:  {count: 10, period: day}
+        loaded_at_field: _LOADED_AT
+      - name: ORDER_STATUS_HISTORY
+        columns:
+          - name: ORDER_ID
+            tests:
+              - unique
+              - not_null
+          - name: STATUS
+            tests:
+            - accepted_values:
+                values: ['pending','completed','shipped','returned','placed']
+        freshness:
+          warn_after: {count: 12, period: hour}
+        loaded_at_field: UPDATED_AT
+  - name: stripe
+    database: RAW_DB
+    schema: STRIPE
+    tables:
+      - name: PAYMENTS
+        columns:
+          - name: ID
+            tests:
+              - unique
+              - not_null
